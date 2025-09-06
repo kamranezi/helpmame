@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "site": "helpmame-8dcc2",
+    "public": "out",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ]
+  }
+}
