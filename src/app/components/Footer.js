@@ -1,9 +1,7 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white p-4 mt-auto">
-      <div className="container mx-auto text-center">
-        <p>© 2024 HelpMame. Все права защищены.</p>
-      </div>
+    <footer className="bg-gray-200 text-center p-4 mt-8">
+      © 2025 HelpMame. Все права защищены.
     </footer>
   );
 }

@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
 
-// В реальном проекте подключай базу для хранения заявок, пользователей и т.д.
 export async function POST(req) {
   const data = await req.json();
   const chatId = data.message?.chat?.id;
   const text = data.message?.text;
 
-  console.log('Incoming Telegram message:', text);
+  if (!chatId) return NextResponse.json({ ok: false });
 
-  // Приветствие
   if (text === '/start') {
     return NextResponse.json({
       method: 'sendMessage',
@@ -17,9 +15,7 @@ export async function POST(req) {
     });
   }
 
-  // Запись на консультацию
   if (text?.toLowerCase().includes('консультация')) {
-    // Тут можно сохранять в базу
     return NextResponse.json({
       method: 'sendMessage',
       chat_id: chatId,
@@ -27,7 +23,6 @@ export async function POST(req) {
     });
   }
 
-  // Срочная помощь
   if (text?.toLowerCase().includes('срочно')) {
     return NextResponse.json({
       method: 'sendMessage',
@@ -36,7 +31,6 @@ export async function POST(req) {
     });
   }
 
-  // Форум / статьи
   if (text?.toLowerCase().includes('статьи')) {
     return NextResponse.json({
       method: 'sendMessage',
@@ -45,7 +39,6 @@ export async function POST(req) {
     });
   }
 
-  // По умолчанию
   return NextResponse.json({
     method: 'sendMessage',
     chat_id: chatId,
