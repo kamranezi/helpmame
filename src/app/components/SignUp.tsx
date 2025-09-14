@@ -45,7 +45,7 @@ export default function SignUp() {
         />
       </div>
       {error && <p className="text-red-500 text-center">{error}</p>}
-      <button type="submit" className="w-full p-2 bg-pink-600 text-white rounded-md hover:bg-pink-700">
+      <button type="submit" className="w-full p-2 bg-green-600 text-white rounded-md hover:bg-pink-700">
         Register
       </button>
     </form>
