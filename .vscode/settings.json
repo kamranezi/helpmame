@@ -1,0 +1,8 @@
+{
+    "editor.defaultFoldingRangeProvider": "Codeium.codeium",
+    "terminal.integrated.suggest.providers": {
+    
+        "terminal-suggest": true,
+        "pwsh-shell-integration": true
+    }
+}
