@@ -13,9 +13,10 @@ const RegisterPage = () => {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
 
+  // Если пользователь уже вошел, перенаправляем его на главную
   useEffect(() => {
     if (user) {
-      router.push('/profile');
+      router.push('/');
     }
   }, [user, router]);
 
@@ -30,7 +31,7 @@ const RegisterPage = () => {
 
     try {
       await emailSignUp(email, password);
-      // onAuthStateChanged перенаправит на /profile
+      router.push('/'); // <-- Немедленный редирект на главную
     } catch (error: any) {
       console.error(error);
       switch (error.code) {
