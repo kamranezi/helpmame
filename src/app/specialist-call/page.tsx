@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const UrgentHelpPage = () => {
+const SpecialistCallPage = () => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [description, setDescription] = useState('');
@@ -28,13 +28,13 @@ const UrgentHelpPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, phone, description, type: 'urgent' }),
+        body: JSON.stringify({ name, phone, description, type: 'specialist-call' }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        setMessage('Ваша заявка на срочную помощь отправлена! Консультант свяжется с вами в приоритетном порядке.');
+        setMessage('Ваша заявка на вызов консультанта принята! Ожидайте звонка для уточнения деталей.');
         setName('');
         setPhone('');
         setDescription('');
@@ -54,8 +54,8 @@ const UrgentHelpPage = () => {
       style={{ backgroundImage: "url('/banner.jpeg')" }}
     >
       <div className="p-8 bg-white bg-opacity-90 rounded-lg shadow-xl w-full max-w-md m-4">
-        <h1 className="text-2xl font-bold mb-6 text-center text-red-600">Срочная помощь</h1>
-        <p className="text-center text-gray-600 mb-6">Если вам требуется немедленная поддержка (сильный лактостаз, отказ от груди), оставьте свои данные. Мы свяжемся с вами как можно скорее.</p>
+        <h1 className="text-2xl font-bold mb-6 text-center text-teal-600">Вызов консультанта на дом</h1>
+        <p className="text-center text-gray-600 mb-6">Заполните форму, чтобы наш специалист приехал к вам для очной помощи и поддержки.</p>
 
         {message && <p className="bg-green-100 text-green-800 p-3 rounded-md mb-4 text-sm">{message}</p>}
         {error && <p className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm">{error}</p>}
@@ -68,8 +68,8 @@ const UrgentHelpPage = () => {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300"
-              placeholder="Например, Мария"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-teal-200"
+              placeholder="Например, Ольга"
               required
             />
           </div>
@@ -80,28 +80,28 @@ const UrgentHelpPage = () => {
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-teal-200"
               placeholder="+7 (999) 123-45-67"
               required
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2" htmlFor="description">Опишите вашу проблему (необязательно)</label>
+            <label className="block text-gray-700 mb-2" htmlFor="description">Ваш адрес и детали (необязательно)</label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-red-300"
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-teal-200"
               rows={3}
-              placeholder="Например: температура 39, уплотнение в груди..."
+              placeholder="Например: г. Москва, ул. Мира, д. 5, кв. 10. Нужна помощь с прикладыванием."
             ></textarea>
           </div>
           <button
             type="submit"
-            className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300 disabled:bg-gray-400"
+            className="w-full bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring focus:ring-teal-200 disabled:bg-gray-400"
             disabled={loading}
           >
-            {loading ? 'Отправка...' : 'Получить срочную помощь'}
+            {loading ? 'Отправка...' : 'Вызвать консультанта'}
           </button>
         </form>
       </div>
@@ -109,4 +109,4 @@ const UrgentHelpPage = () => {
   );
 };
 
-export default UrgentHelpPage;
+export default SpecialistCallPage;

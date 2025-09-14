@@ -1,31 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Функция для универсального форматирования сообщения
+const formatMessage = (title: string, data: { name: string; phone: string; description?: string }) => {
+  let message = `${title}\n\n`;
+  message += `*Имя:* ${data.name}\n`;
+  message += `*Телефон:* \`${data.phone}\`\n`;
+
+  // Добавляем описание, только если оно есть
+  if (data.description) {
+    message += `*Описание проблемы:* ${data.description}`;
+  }
+
+  return message;
+};
+
 export async function POST(req: NextRequest) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const chatId = process.env.TELEGRAM_CHAT_ID; // Используем один Chat ID, как вы и просили
 
   if (!botToken || !chatId) {
     return NextResponse.json(
-      { message: 'Ошибка конфигурации сервера: не найдены токен или ID чата для Telegram.' },
+      { message: 'Ошибка конфигурации сервера: не найдены переменные для Telegram.' },
       { status: 500 }
     );
   }
 
   try {
-    // Получаем не только телефон, но и тип заявки
-    const { phone, type } = await req.json();
+    const { name, phone, description, type } = await req.json();
 
-    if (!phone) {
-      return NextResponse.json({ message: 'Номер телефона не указан.' }, { status: 400 });
+    if (!name || !phone) {
+      return NextResponse.json({ message: 'Имя и телефон обязательны.' }, { status: 400 });
     }
 
     let text: string;
 
-    // Проверяем тип заявки и формируем разный текст
-    if (type === 'urgent') {
-      text = `🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨\n\nТребуется немедленная помощь!\n\n*Телефон:* \`${phone}\``;
-    } else {
-      text = `Новая заявка на консультацию!\n\nТелефон: \`${phone}\``;
+    // Определяем заголовок и ID чата в зависимости от типа заявки
+    switch (type) {
+      case 'urgent':
+        text = formatMessage('🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨', { name, phone, description });
+        break;
+      case 'specialist-call':
+        text = formatMessage('📞 *ВЫЗОВ СПЕЦИАЛИСТА* 📞', { name, phone, description });
+        break;
+      case 'consultation':
+      default:
+        text = formatMessage('📄 Новая заявка на консультацию', { name, phone, description });
+        break;
     }
 
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -36,7 +56,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: chatId,
+        chat_id: chatId, 
         text: text,
         parse_mode: 'Markdown',
       }),
