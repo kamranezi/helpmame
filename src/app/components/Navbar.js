@@ -1,14 +1,25 @@
-"use client";
+'use client';
 import Link from 'next/link';
 import AuthButtons from './AuthButtons';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <nav className="bg-blue-600 text-white p-4 flex justify-between items-center flex-wrap">
-      <h1 className="font-bold text-xl">HelpMame</h1>
+      <div className="flex items-center space-x-4">
+          <button onClick={() => router.back()} className="text-white hover:text-gray-200">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+          </button>
+          <Link href="/">
+              <h1 className="font-bold text-xl cursor-pointer">HelpMame</h1>
+          </Link>
+      </div>
       <button
         className="md:hidden"
         onClick={() => setIsOpen(!isOpen)}
@@ -24,7 +35,7 @@ export default function Navbar() {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}
+            d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16m-7 6h7'}
           />
         </svg>
       </button>
