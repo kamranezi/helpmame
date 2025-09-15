@@ -38,6 +38,7 @@ const UrgentHelpPage = () => {
         setName('');
         setPhone('');
         setDescription('');
+        window.scrollTo(0, 0);
       } else {
         throw new Error(result.message || 'Произошла ошибка при отправке.');
       }

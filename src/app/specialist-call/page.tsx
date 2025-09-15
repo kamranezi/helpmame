@@ -38,7 +38,7 @@ const SpecialistCallPage = () => {
     const now = new Date();
     const isToday = selectedDate === now.toISOString().split('T')[0];
     
-    let startHour = 6;
+    let startHour = 8;
     let startMinute = 0;
 
     if (isToday) {
@@ -61,7 +61,7 @@ const SpecialistCallPage = () => {
       }
     }
 
-    for (let h = startHour; h < 24; h++) {
+    for (let h = startHour; h < 22; h++) {
       for (let m = (h === startHour ? startMinute : 0); m < 60; m += 30) {
         options.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
       }
@@ -100,6 +100,7 @@ const SpecialistCallPage = () => {
         setMessage('Ваша заявка принята! Ожидайте звонка.');
         setName(''); setPhone(''); setAddress(''); setDescription('');
         setSelectedDate(''); setSelectedTime(''); setAsap(false);
+        window.scrollTo(0, 0);
       } else {
         throw new Error(result.message || 'Произошла ошибка.');
       }
@@ -134,11 +135,11 @@ const SpecialistCallPage = () => {
             <label className="block text-gray-700 mb-2">Желаемая дата и время визита</label>
             <div className={`grid grid-cols-2 gap-2 ${asap ? 'opacity-50' : ''}`}>
                 <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} disabled={asap} className="w-full px-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring focus:ring-teal-200">
-                    <option value="" disabled>Выберите дату</option>
+                    <option value="" disabled>Дата</option>
                     {dateOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
                 <select value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} disabled={asap || !selectedDate || timeOptions.length === 0} className="w-full px-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring focus:ring-teal-200">
-                    <option value="" disabled>Выберите время</option>
+                    <option value="" disabled>Время</option>
                     {timeOptions.length > 0 ? timeOptions.map(time => <option key={time} value={time}>{time}</option>) : <option disabled>Нет доступного времени</option>}
                 </select>
             </div>

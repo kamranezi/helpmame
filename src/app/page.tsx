@@ -20,19 +20,19 @@ export default function HomePage() {
         </div>
       </section>
       {/* Секция с тремя кнопками */}
-      <section className="py-12">
+      <section className="py-8">
           <div className="container mx-auto px-4 text-center">
               <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-gray-800">Наши основные услуги</h2>
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <Button href="/specialist-call" variant="teal">Вызов специалиста на дом</Button>
                 <Button href="/consultation" variant="pink">Записаться на консультацию</Button>
                 <Button href="/urgent" variant="red">Срочная онлайн помощь</Button>
-                <Button href="/specialist-call" variant="teal">Вызов специалиста на дом</Button>
             </div>
           </div>
       </section>
       
       {/* Секция о нас */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Как мы можем помочь?</h2>
           <p className="max-w-3xl mx-auto text-gray-700 text-base sm:text-lg">
