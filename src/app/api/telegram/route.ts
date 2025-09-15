@@ -1,23 +1,24 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Функция для универсального форматирования сообщения
-const formatMessage = (title: string, data: { name: string; phone: string; description?: string }) => {
-  let message = `${title}\n\n`;
-  message += `*Имя:* ${data.name}\n`;
-  message += `*Телефон:* \`${data.phone}\`\n`;
-
-  // Добавляем описание, только если оно есть
-  if (data.description) {
-    message += `*Описание проблемы:* ${data.description}`;
+// Функция для форматирования даты, если она есть
+const formatDateTime = (dateTime: string | undefined) => {
+  if (!dateTime) return 'Не указано';
+  try {
+    return new Date(dateTime).toLocaleString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    return dateTime; // Возвращаем как есть, если формат некорректен
   }
-
-  return message;
-};
+}
 
 export async function POST(req: NextRequest) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  // Теперь читаем несколько ID из переменной окружения
   const chatIdsEnv = process.env.TELEGRAM_CHAT_IDS; 
 
   if (!botToken || !chatIdsEnv) {
@@ -27,11 +28,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Разделяем строку с ID на массив
   const chatIds = chatIdsEnv.split(',').map(id => id.trim());
 
   try {
-    const { name, phone, description, type } = await req.json();
+    // Получаем все возможные данные из тела запроса
+    const { 
+      name, 
+      phone, 
+      description, 
+      type, 
+      consultationType, 
+      address, 
+      dateTime, 
+      asap 
+    } = await req.json();
 
     if (!name || !phone) {
       return NextResponse.json({ message: 'Имя и телефон обязательны.' }, { status: 400 });
@@ -39,51 +49,61 @@ export async function POST(req: NextRequest) {
 
     let text: string;
 
-    // Определяем заголовок в зависимости от типа заявки
+    // Общая информация для всех заявок
+    let baseInfo = `*Имя:* ${name}\n*Телефон:* \`${phone}\`\n`;
+
+    // Логика формирования текста сообщения
     switch (type) {
       case 'urgent':
-        text = formatMessage('🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨', { name, phone, description });
+        text = `🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨\n\n${baseInfo}`;
+        if (description) text += `*Описание:* ${description}`;
         break;
-      case 'specialist-call':
-        text = formatMessage('📞 *ВЫЗОВ СПЕЦИАЛИСТА* 📞', { name, phone, description });
+
+      case 'specialist-call': {
+        let title = '📞 *ВЫЗОВ СПЕЦИАЛИСТА НА ДОМ* 📞';
+        let timeInfo = asap ? '*Время:* Ближайшее возможное' : `*Желаемое время:* ${formatDateTime(dateTime)}`;
+        
+        text = `${title}\n\n${baseInfo}`;
+        if (address) text += `*Адрес:* ${address}\n`;
+        text += `${timeInfo}\n`;
+        if (description) text += `*Описание проблемы:* ${description}`;
         break;
+      }
+
       case 'consultation':
-      default:
-        text = formatMessage('📄 Новая заявка на консультацию', { name, phone, description });
+      default: {
+        const isHomeVisit = consultationType === 'home_visit';
+        let title = isHomeVisit 
+          ? '📄 *Новая заявка: Вызов на дом*' 
+          : '📄 *Новая заявка: Онлайн-консультация*';
+        
+        let timeInfo = asap ? '*Время:* Ближайшее возможное' : `*Желаемое время:* ${formatDateTime(dateTime)}`;
+
+        text = `${title}\n\n${baseInfo}`;
+        if (isHomeVisit && address) {
+          text += `*Адрес:* ${address}\n`;
+        }
+        text += `${timeInfo}\n`;
+        if (description) {
+          text += `*Описание вопроса:* ${description}`;
+        }
         break;
+      }
     }
 
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-    // Создаем массив промисов для отправки сообщений в каждый чат
     const sendPromises = chatIds.map(chatId => 
       fetch(telegramUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId, 
-          text: text,
-          parse_mode: 'Markdown',
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
       })
     );
 
-    // Ожидаем выполнения всех запросов
-    const responses = await Promise.all(sendPromises);
+    await Promise.all(sendPromises);
 
-    // Проверяем каждый ответ
-    for (const response of responses) {
-      const result = await response.json();
-      if (!result.ok) {
-        console.error('Telegram API Error:', result);
-        // Если один из запросов неудачен, выбрасываем ошибку
-        throw new Error('Не удалось отправить сообщение в один из чатов Telegram.');
-      }
-    }
-
-    return NextResponse.json({ message: 'Заявка успешно отправлена во все чаты!' });
+    return NextResponse.json({ message: 'Заявка успешно отправлена!' });
 
   } catch (error) {
     console.error('Internal Server Error:', error);
