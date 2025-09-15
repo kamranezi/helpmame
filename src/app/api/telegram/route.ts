@@ -1,1 +1,115 @@
-\nimport { NextRequest, NextResponse } from \'next/server\';\n\n// Функция для форматирования даты, если она есть\nconst formatDateTime = (dateTime: string | undefined) => {\n  if (!dateTime) return \'Не указано\';\n  try {\n    return new Date(dateTime).toLocaleString(\'ru-RU\', {\n      year: \'numeric\',\n      month: \'long\',\n      day: \'numeric\',\n      hour: \'2-digit\',\n      minute: \'2-digit\',\n    });\n  } catch (e) {\n    return dateTime; // Возвращаем как есть, если формат некорректен\n  }\n}\n\nexport async function POST(req: NextRequest) {\n  const botToken = process.env.TELEGRAM_BOT_TOKEN;\n  const chatIdsEnv = process.env.TELEGRAM_CHAT_IDS; \n\n  if (!botToken || !chatIdsEnv) {\n    console.error(\'Server config error: Telegram environment variables not found.\');\n    return NextResponse.json(\n      { message: \'Ошибка конфигурации сервера: не найдены переменные для Telegram.\' },\n      { status: 500 }\n    );\n  }\n\n  const chatIds = chatIdsEnv.split(\',\').map(id => id.trim());\n\n  try {\n    const { \n      name, phone, description, type, \n      consultationType, address, dateTime, asap \n    } = await req.json();\n\n    if (!name || !phone) {\n      return NextResponse.json({ message: \'Имя и телефон обязательны.\' }, { status: 400 });\n    }\n\n    let text: string;\n    // Используем MarkdownV2, он более строгий, но и более предсказуемый. \n    // Нужно экранировать спецсимволы в пользовательском вводе.\n    const escapeMarkdown = (str: string) => str ? str.replace(/([_*[\\]()~`>#+\\-=|{}.!])/g, \'\\\\$1\') : \'\';\n\n    const safeName = escapeMarkdown(name);\n    const safePhone = escapeMarkdown(phone);\n    const safeAddress = escapeMarkdown(address);\n    const safeDescription = escapeMarkdown(description);\n\n    let baseInfo = `*Имя:* ${safeName}\\n*Телефон:* \`${safePhone}\`\\n`;\n\n    switch (type) {\n      case \'urgent\':\n        text = `🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨\\n\\n${baseInfo}`;\n        if (description) text += `*Описание:* ${safeDescription}`;\n        break;\n\n      case \'specialist-call\': {\n        let title = \'📞 *ВЫЗОВ СПЕЦИАЛИСТА НА ДОМ* 📞\';\n        let timeInfo = asap ? \'*Время:* Ближайшее возможное\' : `*Желаемое время:* ${formatDateTime(dateTime)}`;\n        \n        text = `${title}\\n\\n${baseInfo}`;\n        if (address) text += `*Адрес:* ${safeAddress}\\n`;\n        text += `${timeInfo}\\n`;\n        if (description) text += `*Описание проблемы:* ${safeDescription}`;\n        break;\n      }\n\n      case \'consultation\':\n      default: {\n        let title = \'📄 *Новая заявка: Онлайн-консультация*\';\n        let timeInfo = asap ? \'*Время:* Ближайшее возможное\' : `*Желаемое время:* ${formatDateTime(dateTime)}`;\n\n        text = `${title}\\n\\n${baseInfo}`;\n        text += `${timeInfo}\\n`;\n        if (description) {\n          text += `*Описание вопроса:* ${safeDescription}`;\n        }\n        break;\n      }\n    }\n\n    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;\n\n    const sendPromises = chatIds.map(chatId => \n      fetch(telegramUrl, {\n        method: \'POST\',\n        headers: { \'Content-Type\': \'application/json\' },\n        body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: \'MarkdownV2\' }),\n      })\n    );\n\n    const responses = await Promise.all(sendPromises);\n    const failedResponses = [];\n\n    for (const response of responses) {\n      if (!response.ok) {\n        const errorBody = await response.json().catch(() => ({ description: \'Could not parse error body\' }));\n        console.error(\'Telegram API request failed:\', { status: response.status, body: errorBody });\n        failedResponses.push(errorBody);\n      }\n    }\n\n    if (failedResponses.length > 0) {\n        const errorDescription = failedResponses[0]?.description || \'Неизвестная ошибка Telegram.\';\n        return NextResponse.json(\n            { message: `Ошибка при отправке уведомления в Telegram: ${errorDescription}` },\n            { status: 502 } // 502 Bad Gateway, т.к. мы выступаем в роли шлюза к Telegram\n        );\n    }\n\n    return NextResponse.json({ message: \'Заявка успешно отправлена!\' });\n\n  } catch (error) {\n    console.error(\'Internal Server Error in POST /api/telegram:\', error);\n    return NextResponse.json({ message: \'Внутренняя ошибка сервера.\' }, { status: 500 });\n  }\n}\n
+
+import { NextRequest, NextResponse } from 'next/server';
+
+// Функция для форматирования даты, если она есть
+const formatDateTime = (dateTime: string | undefined) => {
+  if (!dateTime) return 'Не указано';
+  try {
+    return new Date(dateTime).toLocaleString('ru-RU', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (e) {
+    return dateTime; // Возвращаем как есть, если формат некорректен
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatIdsEnv = process.env.TELEGRAM_CHAT_IDS; 
+
+  if (!botToken || !chatIdsEnv) {
+    console.error('Server config error: Telegram environment variables not found.');
+    return NextResponse.json(
+      { message: 'Ошибка конфигурации сервера: не найдены переменные для Telegram.' },
+      { status: 500 }
+    );
+  }
+
+  const chatIds = chatIdsEnv.split(',').map(id => id.trim());
+
+  try {
+    const { 
+      name, phone, description, type, 
+      consultationType, address, dateTime, asap 
+    } = await req.json();
+
+    if (!name || !phone) {
+      return NextResponse.json({ message: 'Имя и телефон обязательны.' }, { status: 400 });
+    }
+
+    let text: string;
+
+    // Общая информация для всех заявок
+    let baseInfo = `*Имя:* ${name}\\n*Телефон:* \`${phone}\`\\n`;
+
+    // Логика формирования текста сообщения
+    switch (type) {
+      case 'urgent':
+        text = `🚨 *СРОЧНАЯ ЗАЯВКА!* 🚨\\n\\n${baseInfo}`;
+        if (description) text += `*Описание:* ${description}`;
+        break;
+
+      case 'specialist-call': {
+        let title = '📞 *ВЫЗОВ СПЕЦИАЛИСТА НА ДОМ* 📞';
+        let timeInfo = asap ? '*Время:* Ближайшее возможное' : `*Желаемое время:* ${formatDateTime(dateTime)}`;
+        
+        text = `${title}\\n\\n${baseInfo}`;
+        if (address) text += `*Адрес:* ${address}\\n`;
+        text += `${timeInfo}\\n`;
+        if (description) text += `*Описание проблемы:* ${description}`;
+        break;
+      }
+
+      case 'consultation':
+      default: {
+        const isHomeVisit = consultationType === 'home_visit';
+        let title = isHomeVisit 
+          ? '📄 *Новая заявка: Вызов на дом*' 
+          : '📄 *Новая заявка: Онлайн-консультация*';
+        
+        let timeInfo = asap ? '*Время:* Ближайшее возможное' : `*Желаемое время:* ${formatDateTime(dateTime)}`;
+
+        text = `${title}\\n\\n${baseInfo}`;
+        if (isHomeVisit && address) {
+          text += `*Адрес:* ${address}\\n`;
+        }
+        text += `${timeInfo}\\n`;
+        if (description) {
+          text += `*Описание вопроса:* ${description}`;
+        }
+        break;
+      }
+    }
+
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    // Отправляем уведомления в каждый чат по отдельности, чтобы ошибка в одном не блокировала другие.
+    for (const chatId of chatIds) {
+      try {
+        const response = await fetch(telegramUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
+        });
+        if (!response.ok) {
+           const errorBody = await response.json().catch(() => ({ description: 'Could not parse error body' }));
+           console.error(`Failed to send message to chat ${chatId}:`, errorBody);
+        }
+      } catch (error) {
+        console.error(`Error sending message to chat ${chatId}:`, error);
+      }
+    }
+
+    // Для пользователя всегда возвращаем успех, т.к. его заявка принята.
+    // Ошибки доставки логгируются на сервере.
+    return NextResponse.json({ message: 'Заявка успешно отправлена!' });
+
+  } catch (error) {
+    console.error('Internal Server Error:', error);
+    return NextResponse.json({ message: 'Внутренняя ошибка сервера.' }, { status: 500 });
+  }
+}
