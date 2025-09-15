@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
 // Функция для форматирования даты, если она есть
@@ -22,7 +21,6 @@ export async function POST(req: NextRequest) {
   const chatIdsEnv = process.env.TELEGRAM_CHAT_IDS; 
 
   if (!botToken || !chatIdsEnv) {
-    console.error('Server config error: Telegram environment variables not found.');
     return NextResponse.json(
       { message: 'Ошибка конфигурации сервера: не найдены переменные для Telegram.' },
       { status: 500 }
@@ -32,9 +30,16 @@ export async function POST(req: NextRequest) {
   const chatIds = chatIdsEnv.split(',').map(id => id.trim());
 
   try {
+    // Получаем все возможные данные из тела запроса
     const { 
-      name, phone, description, type, 
-      consultationType, address, dateTime, asap 
+      name, 
+      phone, 
+      description, 
+      type, 
+      consultationType, 
+      address, 
+      dateTime, 
+      asap 
     } = await req.json();
 
     if (!name || !phone) {
@@ -87,25 +92,16 @@ export async function POST(req: NextRequest) {
 
     const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-    // Отправляем уведомления в каждый чат по отдельности, чтобы ошибка в одном не блокировала другие.
-    for (const chatId of chatIds) {
-      try {
-        const response = await fetch(telegramUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
-        });
-        if (!response.ok) {
-           const errorBody = await response.json().catch(() => ({ description: 'Could not parse error body' }));
-           console.error(`Failed to send message to chat ${chatId}:`, errorBody);
-        }
-      } catch (error) {
-        console.error(`Error sending message to chat ${chatId}:`, error);
-      }
-    }
+    const sendPromises = chatIds.map(chatId => 
+      fetch(telegramUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
+      })
+    );
 
-    // Для пользователя всегда возвращаем успех, т.к. его заявка принята.
-    // Ошибки доставки логгируются на сервере.
+    await Promise.all(sendPromises);
+
     return NextResponse.json({ message: 'Заявка успешно отправлена!' });
 
   } catch (error) {
