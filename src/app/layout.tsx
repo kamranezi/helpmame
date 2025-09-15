@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ["latin", "cyrillic"] });
 export const metadata: Metadata = {
   title: "HelpMame - Помощь мамам",
   description: "Онлайн и оффлайн помощь для мам",
+  icons: {
+    icon: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({
