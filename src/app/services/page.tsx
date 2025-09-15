@@ -29,26 +29,26 @@ export default function ServicesPage() {
   ];
 
   return (
-    <div className="container mx-auto p-4 sm:p-8">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">Наши Услуги и Цены</h1>
-        <p className="text-lg text-gray-600 mt-2">
+    <div className="container mx-auto p-4 sm:p-6">
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">Наши Услуги и Цены</h1>
+        <p className="text-base sm:text-lg text-gray-600 mt-2">
           Профессиональная поддержка грудного вскармливания для мам и малышей.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         {services.map((service, index) => (
           <div key={index} className="bg-white rounded-lg shadow-md p-6 flex flex-col">
-            <h2 className="text-xl font-bold text-pink-600 mb-2">{service.title}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-pink-600 mb-2">{service.title}</h2>
             <p className="text-gray-700 flex-grow">{service.description}</p>
             <div className="mt-4 text-right">
-              <span className="text-xl font-semibold text-gray-800">{service.price}</span>
+              <span className="text-lg sm:text-xl font-semibold text-gray-800">{service.price}</span>
             </div>
           </div>
         ))}
       </div>
-       <div className="text-center mt-12">
-           <p className="text-md text-gray-500">
+       <div className="text-center mt-8 sm:mt-12">
+           <p className="text-sm sm:text-md text-gray-500">
                 Не нашли подходящую услугу? Свяжитесь с нами для индивидуального предложения.
            </p>
        </div>

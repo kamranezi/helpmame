@@ -50,11 +50,11 @@ const UrgentHelpPage = () => {
 
   return (
     <div 
-      className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-cover bg-center"
+      className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-cover bg-center py-4"
       style={{ backgroundImage: "url('/banner.jpeg')" }}
     >
-      <div className="p-8 bg-white bg-opacity-90 rounded-lg shadow-xl w-full max-w-md m-4">
-        <h1 className="text-2xl font-bold mb-6 text-center text-red-600">Срочная помощь</h1>
+      <div className="p-6 sm:p-8 bg-white bg-opacity-90 rounded-lg shadow-xl w-full max-w-md mx-4">
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-red-600">Срочная помощь</h1>
         <p className="text-center text-gray-600 mb-6">Если вам требуется немедленная поддержка (сильный лактостаз, отказ от груди), оставьте свои данные. Мы свяжемся с вами как можно скорее.</p>
 
         {message && <p className="bg-green-100 text-green-800 p-3 rounded-md mb-4 text-sm">{message}</p>}
