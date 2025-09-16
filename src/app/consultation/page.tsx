@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { IMaskInput } from 'react-imask';
 
 const ConsultationPage = () => {
   const [name, setName] = useState('');
@@ -123,7 +124,15 @@ const ConsultationPage = () => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="phone">Номер телефона</label>
-            <input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200" placeholder="+7 (999) 123-45-67" required />
+            <IMaskInput
+              mask="+7 (000) 000-00-00"
+              id="phone"
+              value={phone}
+              onAccept={(value: any) => setPhone(value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200"
+              placeholder="+7 (___) ___-__-__"
+              required
+            />
           </div>
           
           <div className="mb-4">
