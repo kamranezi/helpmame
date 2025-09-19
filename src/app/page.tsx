@@ -12,7 +12,7 @@ export default function HomePage() {
         <div className="text-center bg-black bg-opacity-70 p-6 md:p-8 rounded-lg mx-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Спокойствие и уверенность для каждой мамы</h1>
           <p className="text-base sm:text-lg md:text-xl mb-6">Профессиональная поддержка по грудному вскармливанию и уходу за новорожденным</p>
-          <Link href="/consultation">
+          <Link href="/consultation" legacyBehavior>
             <div className="bg-pink-500 text-white px-6 py-3 rounded-lg text-lg font-semibold hover:bg-pink-600 cursor-pointer inline-block">
               Получить консультацию
             </div>
@@ -30,7 +30,6 @@ export default function HomePage() {
             </div>
           </div>
       </section>
-      
       {/* Секция о нас */}
       <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-6 text-center">

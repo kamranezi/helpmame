@@ -21,6 +21,7 @@ export default function Navbar() {
       <li><Link href="/services" className={navLinkClass} onClick={() => setIsOpen(false)}>Услуги и Цены</Link></li>
       <li><Link href="/forum" className={navLinkClass} onClick={() => setIsOpen(false)}>Форум</Link></li>
       <li><Link href="/articles" className={navLinkClass} onClick={() => setIsOpen(false)}>Статьи</Link></li>
+      <li><Link href="/board" className={navLinkClass} onClick={() => setIsOpen(false)}>Доска объявлений</Link></li>
     </>
   );
 
@@ -36,13 +37,12 @@ export default function Navbar() {
           </button>
         )}
         <Link href="/">
-          <div className="flex items-center space-x-2 cursor-pointer">
+          <div className="flex items-center space-x-2">
             <Image src="/logo.jpg" alt="HelpMame Logo" width={40} height={40} className="rounded-full" />
             <h1 className="font-bold text-xl italic">HelpMame</h1>
           </div>
         </Link>
       </div>
-
       {/* Right Side: Desktop Links, Auth Buttons, Hamburger */}
       <div className="flex items-center">
         {/* Desktop Links */}
@@ -76,7 +76,6 @@ export default function Navbar() {
           </svg>
         </button>
       </div>
-
       {/* Mobile Menu (collapsible) */}
       <div className={`absolute top-full left-0 w-full bg-rose-400 md:hidden ${isOpen ? 'block' : 'hidden'}`}>
         <ul className="flex flex-col items-center space-y-4 p-4">

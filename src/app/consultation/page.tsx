@@ -95,7 +95,7 @@ const ConsultationPage = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage('Спасибо! Ваша заявка отправлена.');
+        setMessage('Спасибо! Ваша заявка отправлена. Наш консультант по грудному вскармливанию свяжется с вами в ближайшее время.');
         setName(''); setPhone(''); setDescription('');
         setSelectedDate(''); setSelectedTime(''); setAsap(false);
         window.scrollTo(0, 0);
@@ -111,13 +111,22 @@ const ConsultationPage = () => {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-cover bg-center py-4" style={{ backgroundImage: "url('/banner.jpeg')" }}>
       <div className="p-6 sm:p-8 bg-white bg-opacity-90 rounded-lg shadow-xl w-full max-w-md mx-4">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800">Заявка на онлайн-консультацию</h1>
-        <p className="text-center text-gray-600 mb-6">Оставьте свои данные, и наш консультант по ГВ свяжется с вами в ближайшее время.</p>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800">Онлайн-консультация по грудному вскармливанию (ГВ)</h1>
+        <p className="text-center text-gray-600 mb-6">Получите профессиональную помощь от сертифицированного консультанта по ГВ. Мы поможем решить любые проблемы с грудным вскармливанием и наладить комфортное кормление для вас и вашего малыша.</p>
 
         {message && <p className="bg-green-100 text-green-800 p-3 rounded-md mb-4 text-sm">{message}</p>}
         {error && <p className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+            <p className="text-sm text-gray-700 mb-4">Консультация поможет, если вы столкнулись с такими вопросами, как:</p>
+            <ul className="list-disc list-inside text-sm text-gray-600 mb-6 space-y-1">
+                <li>Больно кормить, трещины на сосках</li>
+                <li>Малыш плохо набирает вес</li>
+                <li>Недостаток или избыток молока</li>
+                <li>Лактостаз или угроза мастита</li>
+                <li>Ребенок отказывается от груди</li>
+            </ul>
+            <p className="text-center text-gray-800 mb-4 font-semibold">Заполните форму, чтобы записаться на консультацию</p>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="name">Ваше имя</label>
             <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200" placeholder="Например, Анна" required />
@@ -157,7 +166,7 @@ const ConsultationPage = () => {
             <label className="block text-gray-700 mb-2" htmlFor="description">Опишите ваш вопрос (необязательно)</label>
             <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200" rows={3} placeholder="Например: малыш плохо берет грудь..."></textarea>
           </div>
-          <button type="submit" className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 disabled:bg-gray-400" disabled={loading}>{loading ? 'Отправка...' : 'Отправить заявку'}</button>
+          <button type="submit" className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 disabled:bg-gray-400" disabled={loading}>{loading ? 'Отправка...' : 'Записаться на консультацию'}</button>
         </form>
       </div>
     </div>
