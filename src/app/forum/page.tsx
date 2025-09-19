@@ -1,6 +1,16 @@
-export default function ForumPage() {
+import React from 'react';
+
+interface Post {
+    id: number;
+    author: string;
+    title: string;
+    replies: number;
+    lastReply: string;
+}
+
+const ForumPage: React.FC = () => {
     // Dummy data for forum posts
-    const posts = [
+    const posts: Post[] = [
         {
             id: 1,
             author: 'Алена',
@@ -54,3 +64,5 @@ export default function ForumPage() {
         </div>
     );
 }
+
+export default ForumPage;

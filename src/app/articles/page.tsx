@@ -1,6 +1,16 @@
-export default function ArticlesPage() {
+import React from 'react';
+
+interface Article {
+    id: number;
+    title: string;
+    excerpt: string;
+    author: string;
+    date: string;
+}
+
+const ArticlesPage: React.FC = () => {
     // Dummy data for articles
-    const articles = [
+    const articles: Article[] = [
         {
             id: 1,
             title: 'Первые дни ГВ: что нужно знать',
@@ -48,4 +58,6 @@ export default function ArticlesPage() {
             </div>
         </div>
     );
-}
+};
+
+export default ArticlesPage;

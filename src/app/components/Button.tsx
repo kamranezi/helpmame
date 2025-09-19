@@ -1,8 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import React from 'react';
 
-export default function Button({ href, children, variant = 'default' }) {
+interface ButtonProps {
+  href: string;
+  children: React.ReactNode;
+  variant?: 'default' | 'red' | 'teal' | 'pink';
+}
+
+export default function Button({ href, children, variant = 'default' }: ButtonProps) {
   const base = "px-6 py-2 rounded-lg font-semibold text-white transition-colors focus:outline-none focus:ring";
 
   let variantClasses;

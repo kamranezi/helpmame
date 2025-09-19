@@ -1,5 +1,5 @@
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import Navbar from "./components/Navbar";
@@ -12,10 +12,13 @@ const inter = Inter({ subsets: ["latin", "cyrillic"] });
 export const metadata: Metadata = {
   title: "HelpMame - Помощь мамам",
   description: "Онлайн и оффлайн помощь для мам",
-  themeColor: "#ffffff", 
   icons: {
     icon: '/logo.jpg',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

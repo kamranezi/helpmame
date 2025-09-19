@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AuthButtons from './AuthButtons';
 import { useCart } from '../context/CartContext'; // Импортируем наш хук
@@ -12,6 +12,11 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { cartTotal } = useCart(); // Получаем общую стоимость из контекста
+  const [clientCartTotal, setClientCartTotal] = useState(0);
+
+  useEffect(() => {
+    setClientCartTotal(cartTotal);
+  }, [cartTotal]);
 
   const navLinkClass = "hover:text-gray-200 transition-colors";
 
@@ -26,13 +31,11 @@ export default function Navbar() {
   );
 
   const cartLink = (
-    <Link href="/cart" legacyBehavior>
-        <a className="flex items-center space-x-2 hover:text-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
-            <Image src="/cart.svg" alt="Корзина" width={24} height={24} />
-            {cartTotal > 0 && (
-                <span className="font-bold">{cartTotal.toLocaleString('ru-RU')} руб.</span>
-            )}
-        </a>
+    <Link href="/cart" className="flex items-center space-x-2 hover:text-gray-200 transition-colors" onClick={() => setIsOpen(false)}>
+        <Image src="/icons/cart.svg" alt="Корзина" width={24} height={24} />
+        {clientCartTotal > 0 && (
+            <span className="font-bold">{clientCartTotal.toLocaleString('ru-RU')} руб.</span>
+        )}
     </Link>
   );
 

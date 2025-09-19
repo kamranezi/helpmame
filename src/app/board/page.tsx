@@ -60,9 +60,7 @@ export default function BoardPage() {
     <div className="bg-white py-10 px-4 sm:px-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold">Доска объявлений</h1>
-        <Link href="/board/new" legacyBehavior>
-          <a className="bg-pink-500 text-white py-2 px-6 rounded-lg hover:bg-pink-600 font-semibold">Добавить объявление</a>
-        </Link>
+        <Link href="/board/new" className="bg-pink-500 text-white py-2 px-6 rounded-lg hover:bg-pink-600 font-semibold">Добавить объявление</Link>
       </div>
 
       {/* Вкладки для переключения */}
