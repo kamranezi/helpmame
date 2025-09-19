@@ -31,25 +31,36 @@ export default function CartPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map(item => (
-              <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-24 h-24 rounded-md overflow-hidden">
-                    <Image src={item.imageUrl} alt={item.title} layout="fill" objectFit="cover" />
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-lg">{item.title}</h2>
-                    <p className="text-gray-600">{item.price.toLocaleString('ru-RU')} руб.</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => handleRemove(item.id)} 
-                  className="text-red-500 hover:text-red-700 font-semibold"
-                >
-                  Удалить
-                </button>
-              </div>
-            ))}
+            {cartItems.map(item => {
+                // ИСПРАВЛЕНО: Используем первое изображение из массива imageUrls
+                const mainImageUrl = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/placeholder.jpg';
+
+                return (
+                    <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-lg shadow-md">
+                        <div className="flex items-center gap-4">
+                        <div className="relative w-24 h-24 rounded-md overflow-hidden">
+                            <Image 
+                                src={mainImageUrl} 
+                                alt={item.title} 
+                                layout="fill" 
+                                objectFit="cover" 
+                                onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
+                            />
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-lg">{item.title}</h2>
+                            <p className="text-gray-600">{item.price.toLocaleString('ru-RU')} руб.</p>
+                        </div>
+                        </div>
+                        <button 
+                        onClick={() => handleRemove(item.id)} 
+                        className="text-red-500 hover:text-red-700 font-semibold"
+                        >
+                        Удалить
+                        </button>
+                    </div>
+                );
+            })}
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-lg h-fit">

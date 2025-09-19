@@ -44,10 +44,10 @@ export default function BoardItemCard({ id, imageUrls, title, price }: BoardItem
           className="w-full h-48 object-cover"
           onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
         />
-        {/* ИЗМЕНЕНО: Отступ уменьшен до p-1, чтобы иконка заполнила круг */}
+        {/* ИЗМЕНЕНО: Отступ уменьшен до p-0.5 для максимального заполнения */}
         <button 
           onClick={handleFavoriteClick} 
-          className="absolute top-2 right-2 p-1 rounded-full bg-white shadow-md transition-transform duration-200 hover:scale-110"
+          className="absolute top-2 right-2 p-0.5 rounded-full bg-white shadow-md transition-transform duration-200 hover:scale-110"
         >
           <Image 
             src={isItemInFavorites(id) ? '/icons/like-2.svg' : '/icons/like-1.svg'} 
