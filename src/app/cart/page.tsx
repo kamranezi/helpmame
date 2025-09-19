@@ -56,7 +56,7 @@ export default function CartPage() {
                         onClick={() => handleRemove(item.id)} 
                         className="text-red-500 hover:text-red-700 font-semibold"
                         >
-                        Удалить
+                        Убрать из корзины
                         </button>
                     </div>
                 );

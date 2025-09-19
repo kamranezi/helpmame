@@ -5,22 +5,29 @@ import Link from 'next/link';
 import BoardItemCard from '../components/BoardItemCard';
 import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { app } from '../../lib/firebase';
-import { useCart } from '../context/CartContext'; // Импортируем хук для доступа к избранному
-import { BoardItem } from '../context/CartContext'; // Импортируем тип
+import { useCart, BoardItem } from '../context/CartContext'; // Контекст для избранного
+import { useAuth } from '../context/AuthContext'; // Контекст для авторизации
 
-// Определяем, какие вкладки у нас есть
+// ИЗМЕНЕНО: Добавлена вкладка "Мои"
 enum Tab {
   All,      // Все объявления
-  Favorites // Избранное
+  Favorites, // Избранное
+  My        // Мои объявления
+}
+
+// Расширяем локальный тип, чтобы включить userId для фильтрации
+interface LocalBoardItem extends BoardItem {
+    userId?: string;
 }
 
 export default function BoardPage() {
-  const [allItems, setAllItems] = useState<BoardItem[]>([]);
+  const [allItems, setAllItems] = useState<LocalBoardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>(Tab.All);
 
-  const { favoriteItems } = useCart(); // Получаем список избранных товаров
+  const { favoriteItems } = useCart();
+  const { user } = useAuth(); // Получаем текущего пользователя
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -33,7 +40,7 @@ export default function BoardPage() {
         const itemsList = itemSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        } as BoardItem));
+        } as LocalBoardItem));
         
         setAllItems(itemsList);
       } catch (err) {
@@ -47,8 +54,22 @@ export default function BoardPage() {
     fetchItems();
   }, []);
 
-  // Определяем, какие товары показывать в зависимости от активной вкладки
-  const displayedItems = activeTab === Tab.All ? allItems : favoriteItems;
+  // ИЗМЕНЕНО: Логика отображения товаров в зависимости от вкладки
+  const getDisplayedItems = () => {
+    switch(activeTab) {
+      case Tab.Favorites:
+        return favoriteItems;
+      case Tab.My:
+        // Показываем только если пользователь авторизован и есть его ID
+        if (!user) return [];
+        return allItems.filter(item => item.userId === user.uid);
+      case Tab.All:
+      default:
+        return allItems;
+    }
+  };
+
+  const displayedItems = getDisplayedItems();
 
   const getTabClass = (tab: Tab) => {
     return activeTab === tab
@@ -63,14 +84,21 @@ export default function BoardPage() {
         <Link href="/board/new" className="bg-pink-500 text-white py-2 px-6 rounded-lg hover:bg-pink-600 font-semibold">Добавить объявление</Link>
       </div>
 
-      {/* Вкладки для переключения */}
+      {/* ИЗМЕНЕНО: Вкладки, которые меняются в зависимости от авторизации */}
       <div className="flex space-x-8 mb-8 border-b border-gray-200">
         <button onClick={() => setActiveTab(Tab.All)} className={getTabClass(Tab.All)}>
-          Все объявления
+          Все
         </button>
-        <button onClick={() => setActiveTab(Tab.Favorites)} className={getTabClass(Tab.Favorites)}>
-          Избранное ({favoriteItems.length})
-        </button>
+        {user && (
+          <>
+            <button onClick={() => setActiveTab(Tab.Favorites)} className={getTabClass(Tab.Favorites)}>
+              Избранное ({favoriteItems.length})
+            </button>
+            <button onClick={() => setActiveTab(Tab.My)} className={getTabClass(Tab.My)}>
+              Мои
+            </button>
+          </>
+        )}
       </div>
 
       {loading && <p className="text-center py-10">Загрузка объявлений...</p>}
@@ -84,7 +112,7 @@ export default function BoardPage() {
                 <BoardItemCard 
                   key={item.id}
                   id={item.id}
-                  imageUrls={item.imageUrls} // Исправлено
+                  imageUrls={item.imageUrls}
                   title={item.title}
                   price={item.price}
                 />
@@ -92,10 +120,9 @@ export default function BoardPage() {
             </div>
           ) : (
             <p className="text-center text-gray-500 py-10">
-              {activeTab === Tab.Favorites 
-                ? "В избранном пока ничего нет. Добавьте товары, нажав на сердечко."
-                : "Объявлений пока нет."
-              }
+              {activeTab === Tab.Favorites && "В избранном пока ничего нет."}
+              {activeTab === Tab.My && "У вас пока нет объявлений."}
+              {activeTab === Tab.All && "Объявлений пока нет."}
             </p>
           )}
         </>

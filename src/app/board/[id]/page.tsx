@@ -40,7 +40,7 @@ const ItemDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
         if (!id) return;
@@ -52,9 +52,6 @@ const ItemDetailsPage = () => {
                 if (docSnap.exists()) {
                     const data = { id: docSnap.id, ...docSnap.data() } as BoardItemDetails;
                     setItem(data);
-                    if (data.imageUrls && data.imageUrls.length > 0) {
-                        setSelectedImage(data.imageUrls[0]);
-                    }
                 } else {
                     setError('Объявление не найдено.');
                 }
@@ -91,6 +88,16 @@ const ItemDetailsPage = () => {
         });
     }
 
+    const handlePrev = () => {
+        if (!item || !item.imageUrls) return;
+        setCurrentIndex((prev) => (prev === 0 ? item.imageUrls.length - 1 : prev - 1));
+    };
+
+    const handleNext = () => {
+        if (!item || !item.imageUrls) return;
+        setCurrentIndex((prev) => (prev === item.imageUrls.length - 1 ? 0 : prev + 1));
+    };
+
     if (loading) {
         return <div className="text-center py-20">Загрузка...</div>;
     }
@@ -103,6 +110,8 @@ const ItemDetailsPage = () => {
         return null;
     }
     
+    const validImageUrls = item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls : ['/placeholder.jpg'];
+    const hasMultipleImages = validImageUrls.length > 1;
     const isOwner = user && user.uid === item.userId;
     const itemForCart: BoardItem = { id: item.id, title: item.title, price: item.price, imageUrls: item.imageUrls };
 
@@ -110,17 +119,56 @@ const ItemDetailsPage = () => {
         <div className="bg-white py-10 px-4 sm:px-10">
             <div className="max-w-4xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    
+                    {/* --- ИЗМЕНЕНО: Комбинированный блок слайдера и галереи --- */}
                     <div>
-                        {selectedImage && (
-                            <div className="relative w-full h-96 mb-4">
-                                <Image src={selectedImage} alt={item.title} layout="fill" objectFit="cover" className="rounded-lg shadow-lg"/>
-                            </div>
-                        )}
-                        {item.imageUrls && item.imageUrls.length > 1 && (
-                            <div className="flex space-x-2 overflow-x-auto">
-                                {item.imageUrls.map((url, index) => (
-                                    <div key={index} className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 ${selectedImage === url ? 'border-rose-500' : 'border-transparent'}`}>
-                                        <Image src={url} alt={`${item.title} thumbnail ${index + 1}`} layout="fill" objectFit="cover" onClick={() => setSelectedImage(url)} />
+                        <div className="relative w-full h-96 group mb-4">
+                            <Image 
+                                src={validImageUrls[currentIndex]} 
+                                alt={item.title} 
+                                layout="fill" 
+                                objectFit="cover" 
+                                className="rounded-lg shadow-lg"
+                                onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
+                            />
+                            {hasMultipleImages && (
+                            <>
+                                <button 
+                                onClick={handlePrev}
+                                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-black/60"
+                                aria-label="Previous image"
+                                >
+                                <Image src="/icons/back.svg" alt="Назад" width={24} height={24} />
+                                </button>
+                                <button 
+                                onClick={handleNext}
+                                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-black/60"
+                                aria-label="Next image"
+                                >
+                                <Image src="/icons/next.svg" alt="Вперед" width={24} height={24} />
+                                </button>
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                                {validImageUrls.map((_, index) => (
+                                    <span
+                                    key={index}
+                                    onClick={() => setCurrentIndex(index)}
+                                    className={`block w-3 h-3 rounded-full cursor-pointer ${currentIndex === index ? 'bg-white' : 'bg-white/50'}`}
+                                    />
+                                ))}
+                                </div>
+                            </>
+                            )}
+                        </div>
+                        
+                        {/* --- ИЗМЕНЕНО: Галерея миниатюр возвращена --- */}
+                        {hasMultipleImages && (
+                            <div className="flex space-x-2 overflow-x-auto p-1">
+                                {validImageUrls.map((url, index) => (
+                                    <div key={index} 
+                                        className={`relative w-20 h-20 flex-shrink-0 cursor-pointer rounded-md overflow-hidden border-2 transition-all ${currentIndex === index ? 'border-rose-500' : 'border-transparent'}`}
+                                        onClick={() => setCurrentIndex(index)}
+                                    >
+                                        <Image src={url} alt={`${item.title} thumbnail ${index + 1}`} layout="fill" objectFit="cover" />
                                     </div>
                                 ))}
                             </div>
@@ -159,7 +207,6 @@ const ItemDetailsPage = () => {
                                         className={`w-full py-3 rounded-lg font-semibold transition-colors ${isItemInCart(id) ? 'bg-gray-200 text-gray-800' : 'bg-rose-500 text-white hover:bg-rose-600'}`}>
                                         {isItemInCart(id) ? 'Убрать из корзины' : 'Добавить в корзину'}
                                     </button>
-                                    {/* ИЗМЕНЕНО: Отступ уменьшен до p-1.5, чтобы иконка заполнила круг */}
                                     <button 
                                         onClick={() => toggleFavorite(itemForCart)} 
                                         className="p-1.5 rounded-full bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all duration-200 hover:scale-110"

@@ -61,6 +61,7 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center">
+        {/* Навигация для десктопа */}
         <ul className="hidden md:flex space-x-6 items-center">
           {navLinks}
         </ul>
@@ -70,11 +71,18 @@ export default function Navbar() {
             <AuthButtons />
         </div>
 
-        <button className="md:hidden ml-4" onClick={() => setIsOpen(!isOpen)}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16m-7 6h7'}></path>
-            </svg>
-        </button>
+        {/* ИЗМЕНЕНО: Контейнер для иконок мобильной версии */}
+        <div className="flex items-center md:hidden ml-4">
+            {/* ИЗМЕНЕНО: cartLink вынесен в хедер для мобильных */}
+            <div className="mr-4">
+                {cartLink}
+            </div>
+            <button onClick={() => setIsOpen(!isOpen)}>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16m-7 6h7'}></path>
+                </svg>
+            </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -82,8 +90,8 @@ export default function Navbar() {
         <ul className="flex flex-col items-center space-y-4 p-4">
           {navLinks}
         </ul>
+        {/* ИЗМЕНЕНО: cartLink убран из выезжающего меню */}
         <div className="p-4 border-t border-white/20 flex flex-col items-center space-y-4">
-            {cartLink}
             <AuthButtons />
         </div>
       </div>
