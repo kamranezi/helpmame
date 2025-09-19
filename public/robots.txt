@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://helpmame.ru/sitemap.xml
