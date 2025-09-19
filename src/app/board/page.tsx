@@ -84,7 +84,7 @@ export default function BoardPage() {
                 <BoardItemCard 
                   key={item.id}
                   id={item.id}
-                  imageUrl={item.imageUrl}
+                  imageUrls={item.imageUrls} // Исправлено
                   title={item.title}
                   price={item.price}
                 />

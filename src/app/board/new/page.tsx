@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { app } from '../../../lib/firebase';
+import Image from 'next/image';
 
 const NewItemPage = () => {
   const { user } = useAuth(); 
@@ -17,12 +18,10 @@ const NewItemPage = () => {
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('унисекс');
   const [address, setAddress] = useState('');
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]); // Состояние для нескольких файлов
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ВАЖНО: В реальном проекте ключ API следует хранить в переменных окружения на сервере,
-  // а не в клиентском коде для безопасности.
   const IMGBB_API_KEY = 'adc437ee13731c5fafb9f3ebfa6b7d28';
 
   if (!user) {
@@ -34,41 +33,51 @@ const NewItemPage = () => {
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+    if (e.target.files) {
+      // Преобразуем FileList в массив и добавляем к существующим
+      const newFiles = Array.from(e.target.files);
+      setImages(prevImages => [...prevImages, ...newFiles]);
     }
+  };
+  
+  // Функция для удаления изображения из превью
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !price || !address || !image) {
-        setError('Пожалуйста, заполните все обязательные поля и загрузите фото.');
+    if (!title || !price || !address || images.length === 0) {
+        setError('Пожалуйста, заполните все обязательные поля и загрузите хотя бы одно фото.');
         return;
     }
     setLoading(true);
     setError('');
 
     try {
-        // 1. Загрузка изображения на ImgBB
-        const formData = new FormData();
-        formData.append('image', image);
-        formData.append('key', IMGBB_API_KEY);
+        // 1. Загрузка всех изображений на ImgBB
+        const imageUrls = await Promise.all(
+            images.map(async (image) => {
+                const formData = new FormData();
+                formData.append('image', image);
+                formData.append('key', IMGBB_API_KEY);
 
-        const response = await fetch('https://api.imgbb.com/1/upload', {
-            method: 'POST',
-            body: formData,
-        });
+                const response = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке изображения.');
-        }
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке одного из изображений.');
+                }
 
-        const imgbbData = await response.json();
-        const imageUrl = imgbbData.data.url;
-
-        if (!imageUrl) {
-            throw new Error('Не удалось получить URL изображения после загрузки.');
-        }
+                const imgbbData = await response.json();
+                if (!imgbbData.data.url) {
+                    throw new Error('Не удалось получить URL изображения после загрузки.');
+                }
+                return imgbbData.data.url;
+            })
+        );
 
         // 2. Сохранение данных в Firestore
         const db = getFirestore(app);
@@ -81,7 +90,7 @@ const NewItemPage = () => {
             age: age ? parseInt(age) : null,
             gender,
             address,
-            imageUrl: imageUrl, // Используем URL от ImgBB
+            imageUrls: imageUrls, // Сохраняем массив URL
             createdAt: serverTimestamp()
         });
 
@@ -109,8 +118,30 @@ const NewItemPage = () => {
                 </div>
 
                 <div>
-                    <label className="block text-gray-700 mb-2 font-semibold">Фото</label>
-                    <input type="file" onChange={handleImageChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" required/>
+                    <label className="block text-gray-700 mb-2 font-semibold">Фото (до 5 шт., первая будет главной)</label>
+                    <input type="file" onChange={handleImageChange} multiple className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" required/>
+                    {/* Превью загруженных изображений */}
+                    <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                        {images.map((file, index) => (
+                            <div key={index} className="relative group">
+                                <Image
+                                    src={URL.createObjectURL(file)}
+                                    alt={`Preview ${index + 1}`}
+                                    width={100}
+                                    height={100}
+                                    className="w-full h-24 object-cover rounded-md"
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleRemoveImage(index)} 
+                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 group-hover:opacity-100 transition-opacity"
+                                >
+                                    X
+                                </button>
+                                {index === 0 && <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs text-center py-0.5 rounded-b-md">Главное</div>}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

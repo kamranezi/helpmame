@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { app } from '../../../../lib/firebase';
+import Image from 'next/image';
 
 const EditItemPage = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ const EditItemPage = () => {
   const params = useParams();
   const id = params.id as string;
 
+  // Поля формы
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -19,8 +21,12 @@ const EditItemPage = () => {
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('унисекс');
   const [address, setAddress] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState('');
+  
+  // Управление изображениями
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+
+  // Состояния UI
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -50,7 +56,7 @@ const EditItemPage = () => {
         setAge(itemData.age ? itemData.age.toString() : '');
         setGender(itemData.gender);
         setAddress(itemData.address);
-        setCurrentImageUrl(itemData.imageUrl);
+        setExistingImageUrls(itemData.imageUrls || []);
       } else {
         setError('Объявление не найдено.');
       }
@@ -60,46 +66,55 @@ const EditItemPage = () => {
     fetchItem();
   }, [id, user]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
+  const handleNewImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setNewImages(prev => [...prev, ...files]);
     }
+  };
+
+  const removeExistingImage = (urlToRemove: string) => {
+    setExistingImageUrls(prev => prev.filter(url => url !== urlToRemove));
+  };
+
+  const removeNewImage = (indexToRemove: number) => {
+    setNewImages(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !price || !address) {
-      setError('Пожалуйста, заполните все обязательные поля.');
+    if (!title || !price || !address || (existingImageUrls.length === 0 && newImages.length === 0)) {
+      setError('Пожалуйста, заполните обязательные поля и добавьте хотя бы одно фото.');
       return;
     }
     setLoading(true);
     setError('');
 
     try {
-      const db = getFirestore(app);
-      const docRef = doc(db, "board", id);
+      // 1. Загрузка новых изображений
+      const newImageUrls = await Promise.all(
+        newImages.map(async (image) => {
+          const formData = new FormData();
+          formData.append('image', image);
+          formData.append('key', IMGBB_API_KEY);
 
-      let imageUrl = currentImageUrl;
-
-      // Если загружено новое изображение, отправляем его на ImgBB
-      if (image) {
-        const formData = new FormData();
-        formData.append('image', image);
-        formData.append('key', IMGBB_API_KEY);
-
-        const response = await fetch('https://api.imgbb.com/1/upload', {
+          const response = await fetch('https://api.imgbb.com/1/upload', {
             method: 'POST',
             body: formData,
-        });
+          });
 
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке нового изображения.');
-        }
-        const imgbbData = await response.json();
-        imageUrl = imgbbData.data.url;
-      }
+          if (!response.ok) throw new Error('Ошибка загрузки изображения.');
+          const imgbbData = await response.json();
+          return imgbbData.data.url;
+        })
+      );
 
-      // Обновляем документ в Firestore
+      // 2. Объединение старых и новых URL
+      const finalImageUrls = [...existingImageUrls, ...newImageUrls];
+
+      // 3. Обновление документа в Firestore
+      const db = getFirestore(app);
+      const docRef = doc(db, "board", id);
       await updateDoc(docRef, {
         title,
         description,
@@ -108,7 +123,7 @@ const EditItemPage = () => {
         age: age ? parseInt(age) : null,
         gender,
         address,
-        imageUrl, // Сохраняем новую или старую ссылку на фото
+        imageUrls: finalImageUrls, // Сохраняем итоговый массив
       });
 
       setLoading(false);
@@ -116,17 +131,17 @@ const EditItemPage = () => {
 
     } catch (e) {
       console.error("Error updating document: ", e);
-      setError(e instanceof Error ? e.message : 'Произошла ошибка при обновлении объявления.');
+      setError(e instanceof Error ? e.message : 'Произошла ошибка при обновлении.');
       setLoading(false);
     }
   };
-  
+
   if (initialLoading) {
-      return <div className="text-center py-10">Загрузка данных для редактирования...</div>;
+    return <div className="text-center py-10">Загрузка данных...</div>;
   }
 
   if (error && !title) {
-      return <div className="text-center py-10 text-red-500">{error}</div>;
+    return <div className="text-center py-10 text-red-500">{error}</div>;
   }
 
   return (
@@ -137,16 +152,35 @@ const EditItemPage = () => {
             {error && <p className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm">{error}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
+                {/* Поля для текста */}
+                 <div>
                     <label className="block text-gray-700 mb-2 font-semibold" htmlFor="title">Название объявления</label>
                     <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200" required />
                 </div>
+                
+                {/* Управление изображениями */}
                 <div>
-                    <label className="block text-gray-700 mb-2 font-semibold">Текущее фото</label>
-                    {currentImageUrl && <img src={currentImageUrl} alt="Текущее фото" className="w-32 h-32 object-cover rounded-lg mb-2"/>}
-                    <label className="block text-gray-700 mb-2 font-semibold">Загрузить новое фото (необязательно)</label>
-                    <input type="file" onChange={handleImageChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" />
+                    <label className="block text-gray-700 mb-2 font-semibold">Фотографии</label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 p-4 border rounded-lg">
+                        {/* Существующие изображения */}
+                        {existingImageUrls.map((url) => (
+                             <div key={url} className="relative group">
+                                <Image src={url} alt="Existing image" width={100} height={100} className="w-full h-24 object-cover rounded-md" />
+                                <button type="button" onClick={() => removeExistingImage(url)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 group-hover:opacity-100">X</button>
+                            </div>
+                        ))}
+                        {/* Превью новых изображений */}
+                        {newImages.map((file, index) => (
+                             <div key={index} className="relative group">
+                                <Image src={URL.createObjectURL(file)} alt={`New preview ${index}`} width={100} height={100} className="w-full h-24 object-cover rounded-md" />
+                                <button type="button" onClick={() => removeNewImage(index)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-75 group-hover:opacity-100">X</button>
+                            </div>
+                        ))}
+                    </div>
+                     <label className="block text-gray-700 mt-4 mb-2 font-semibold">Добавить новые фото</label>
+                    <input type="file" multiple onChange={handleNewImagesChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100" />
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-gray-700 mb-2 font-semibold" htmlFor="category">Категория</label>
@@ -184,6 +218,7 @@ const EditItemPage = () => {
                         <input type="text" id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-pink-200" required />
                     </div>
                 </div>
+
                 <button type="submit" className="w-full bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600 disabled:bg-gray-400 font-semibold" disabled={loading}>{loading ? 'Сохранение...' : 'Сохранить изменения'}</button>
             </form>
         </div>

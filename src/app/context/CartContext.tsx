@@ -5,11 +5,11 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 // Определяем единый тип для товара, чтобы использовать его везде
 export interface BoardItem {
   id: string;
-  imageUrl: string;
+  imageUrls: string[]; // Теперь это массив для нескольких изображений
   title: string;
   price: number;
-  // Добавим userId, чтобы в будущем можно было делать более сложную логику
   userId?: string; 
+  createdAt?: any; // Добавляем поле для времени создания/обновления
 }
 
 // Определяем, какие данные и функции будет предоставлять наш контекст
