@@ -24,8 +24,8 @@ export default function Navbar() {
     <>
       <li><Link href="/" className={navLinkClass} onClick={() => setIsOpen(false)}>Главная</Link></li>
       <li><Link href="/consultation" className={navLinkClass} onClick={() => setIsOpen(false)}>Консультация</Link></li>
-      <li><Link href="/sos" className={navLinkClass} onClick={() => setIsOpen(false)}>Срочная помощь</Link></li>
-      <li><Link href="/house-call" className={navLinkClass} onClick={() => setIsOpen(false)}>Вызов на дом</Link></li>
+      <li><Link href="/urgent" className={navLinkClass} onClick={() => setIsOpen(false)}>Срочная помощь</Link></li>
+      <li><Link href="/specialist-call" className={navLinkClass} onClick={() => setIsOpen(false)}>Вызов на дом</Link></li>
       <li><Link href="/services" className={navLinkClass} onClick={() => setIsOpen(false)}>Услуги и Цены</Link></li>
       <li><Link href="/board" className={navLinkClass} onClick={() => setIsOpen(false)}>Доска объявлений</Link></li>
       <li><Link href="/forum" className={navLinkClass} onClick={() => setIsOpen(false)}>Форум</Link></li>

@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext"; // Импортируем наш новый провайдер
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
             </div>
           </CartProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
