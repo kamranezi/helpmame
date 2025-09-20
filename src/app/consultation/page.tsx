@@ -112,7 +112,10 @@ const ConsultationPage = () => {
     <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-cover bg-center py-4" style={{ backgroundImage: "url('/banner.jpeg')" }}>
       <div className="p-6 sm:p-8 bg-white bg-opacity-90 rounded-lg shadow-xl w-full max-w-md mx-4">
         <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-800">Онлайн-консультация по грудному вскармливанию (ГВ)</h1>
-        <p className="text-center text-gray-600 mb-6">Получите профессиональную помощь от сертифицированного консультанта по ГВ. Мы поможем решить любые проблемы с грудным вскармливанием и наладить комфортное кормление для вас и вашего малыша.</p>
+        <p className="text-center text-gray-600 mb-6">
+          Получите профессиональную помощь от сертифицированного консультанта по ГВ. Мы поможем решить любые проблемы с грудным вскармливанием и наладить комфортное кормление для вас и вашего малыша.
+          <br/><br/><b>Важно:</b> консультации по грудному вскармливанию не являются заменой медицинской помощи. Консультант не ставит диагнозы и не назначает лечение. При возникновении острых состояний, пожалуйста, обратитесь к врачу.
+        </p>
 
         {message && <p className="bg-green-100 text-green-800 p-3 rounded-md mb-4 text-sm">{message}</p>}
         {error && <p className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm">{error}</p>}
@@ -168,6 +171,9 @@ const ConsultationPage = () => {
           </div>
           <button type="submit" className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 disabled:bg-gray-400" disabled={loading}>{loading ? 'Отправка...' : 'Записаться на консультацию'}</button>
         </form>
+        <div className="mt-6 text-xs text-gray-500 text-center">
+          <p><b>Отказ от ответственности:</b> Информация и советы, предоставляемые нашими консультантами, носят исключительно рекомендательный характер и не должны рассматриваться как замена профессиональной медицинской консультации, диагностики или лечения. Всегда обращайтесь за советом к своему врачу или другому квалифицированному медицинскому работнику по любым вопросам, которые могут у вас возникнуть относительно вашего здоровья или здоровья вашего ребенка.</p>
+        </div>
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav className="bg-rose-500 text-white p-4 flex justify-between items-center relative font-semibold z-20 shadow-md">
+    <nav className="bg-rose-400 text-white p-4 flex justify-between items-center relative font-semibold z-20 shadow-md">
       <div className="flex items-center space-x-4">
         {pathname !== '/' && (
           <button onClick={() => router.back()} className="text-white hover:text-gray-200">
@@ -86,7 +86,7 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`absolute top-full left-0 w-full bg-rose-400 md:hidden ${isOpen ? 'block' : 'hidden'}`}>
+      <div className={`absolute top-full left-0 w-full bg-rose-300 md:hidden ${isOpen ? 'block' : 'hidden'}`}>
         <ul className="flex flex-col items-center space-y-4 p-4">
           {navLinks}
         </ul>

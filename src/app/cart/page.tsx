@@ -79,7 +79,13 @@ export default function CartPage() {
             >
               Оформить заказ
             </button>
-            <p className="text-center text-sm text-gray-500 mt-2">Нажимая "Оформить заказ", вы соглашаетесь с правилами нашей платформы.</p>
+            <p className="text-center text-sm text-gray-500 mt-2">
+  Нажимая "Оформить заказ", вы соглашаетесь с{' '}
+  <Link href="/privacy" className="text-rose-500 hover:underline">
+    Политикой конфиденциальности
+  </Link>{' '}
+  нашей платформы.
+</p>
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { FaPhone, FaTelegram, FaWhatsapp } from 'react-icons/fa';
 
 const Footer: React.FC = () => {
@@ -17,6 +18,11 @@ const Footer: React.FC = () => {
           </a>
         </div>
         <p className="mt-4 text-gray-400">&copy; 2025 HelpMame. Все права защищены.</p>
+        <div className="mt-2">
+          <Link href="/privacy" legacyBehavior>
+            <a className="text-gray-400 hover:text-white text-sm">Политика конфиденциальности</a>
+          </Link>
+        </div>
       </div>
     </footer>
   );
