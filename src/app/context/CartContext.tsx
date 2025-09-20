@@ -1,15 +1,18 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase'; 
+import { useAuth } from './AuthContext';
 
-// Определяем единый тип для товара, чтобы использовать его везде
+// Определяем единый тип для товара
 export interface BoardItem {
   id: string;
-  imageUrls: string[]; // Теперь это массив для нескольких изображений
+  imageUrls: string[];
   title: string;
   price: number;
-  userId?: string; 
-  createdAt?: any; // Добавляем поле для времени создания/обновления
+  userId?: string;
+  createdAt?: any;
 }
 
 // Определяем, какие данные и функции будет предоставлять наш контекст
@@ -19,85 +22,110 @@ interface CartContextType {
   addToCart: (item: BoardItem) => void;
   removeFromCart: (itemId: string) => void;
   isItemInCart: (itemId: string) => boolean;
-  toggleFavorite: (item: BoardItem) => void; // Одна функция для добавления/удаления
+  toggleFavorite: (item: BoardItem) => void;
   isItemInFavorites: (itemId: string) => boolean;
   cartTotal: number;
+  loading: boolean; // Флаг для отслеживания загрузки данных
 }
 
 // Создаем сам контекст
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Создаем компонент-"провайдер", который будет "заворачивать" наше приложение
+// Создаем компонент-"провайдер"
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  // Используем ленивую инициализацию, чтобы данные из localStorage читались только один раз
-  const [cartItems, setCartItems] = useState<BoardItem[]>(() => {
-      if (typeof window === 'undefined') return [];
-      const savedCart = window.localStorage.getItem('cartItems');
-      return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const { user } = useAuth(); // Получаем текущего пользователя
+  const [loading, setLoading] = useState(true);
+  
+  // Состояния для корзины и избранного теперь инициализируются пустыми
+  const [cartItems, setCartItems] = useState<BoardItem[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<BoardItem[]>([]);
 
-  const [favoriteItems, setFavoriteItems] = useState<BoardItem[]>(() => {
-      if (typeof window === 'undefined') return [];
-      const savedFavorites = window.localStorage.getItem('favoriteItems');
-      return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
-
-  // Сохраняем изменения в корзине в localStorage
+  // Эффект для загрузки и синхронизации данных при изменении пользователя
   useEffect(() => {
-    window.localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
+    const fetchData = async () => {
+      if (user) {
+        setLoading(true);
+        const cartRef = doc(db, 'carts', user.uid);
+        const docSnap = await getDoc(cartRef);
 
-  // Сохраняем изменения в избранном в localStorage
-  useEffect(() => {
-    window.localStorage.setItem('favoriteItems', JSON.stringify(favoriteItems));
-  }, [favoriteItems]);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setCartItems(data.cartItems || []);
+          setFavoriteItems(data.favoriteItems || []);
+        } else {
+          // Если документа нет, создаем его с пустыми массивами
+          await setDoc(cartRef, { cartItems: [], favoriteItems: [] });
+          setCartItems([]);
+          setFavoriteItems([]);
+        }
+        setLoading(false);
+      } else {
+        // Если пользователя нет, очищаем состояния и выключаем загрузку
+        setCartItems([]);
+        setFavoriteItems([]);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   // --- Функции для Корзины ---
-  const addToCart = (item: BoardItem) => {
-    setCartItems(prev => [...prev, item]);
+  const addToCart = async (item: BoardItem) => {
+    if (!user) return; // Не добавляем, если пользователь не авторизован
+    const newCartItems = [...cartItems, item];
+    setCartItems(newCartItems);
+    const cartRef = doc(db, 'carts', user.uid);
+    await updateDoc(cartRef, { cartItems: newCartItems });
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== itemId));
+  const removeFromCart = async (itemId: string) => {
+    if (!user) return;
+    const newCartItems = cartItems.filter(item => item.id !== itemId);
+    setCartItems(newCartItems);
+    const cartRef = doc(db, 'carts', user.uid);
+    await updateDoc(cartRef, { cartItems: newCartItems });
   };
 
-  const isItemInCart = (itemId: string) => {
-    return cartItems.some(item => item.id === itemId);
-  };
+  const isItemInCart = (itemId: string) => cartItems.some(item => item.id === itemId);
 
   // --- Функции для Избранного ---
-  const toggleFavorite = (item: BoardItem) => {
+  const toggleFavorite = async (item: BoardItem) => {
+    if (!user) return;
+    let newFavoriteItems;
     if (isItemInFavorites(item.id)) {
-      setFavoriteItems(prev => prev.filter(fav => fav.id !== item.id));
+      newFavoriteItems = favoriteItems.filter(fav => fav.id !== item.id);
     } else {
-      setFavoriteItems(prev => [...prev, item]);
+      newFavoriteItems = [...favoriteItems, item];
     }
+    setFavoriteItems(newFavoriteItems);
+    const cartRef = doc(db, 'carts', user.uid);
+    await updateDoc(cartRef, { favoriteItems: newFavoriteItems });
   };
 
-  const isItemInFavorites = (itemId: string) => {
-    return favoriteItems.some(item => item.id === itemId);
-  };
-
-  // Считаем общую стоимость товаров в корзине
+  const isItemInFavorites = (itemId: string) => favoriteItems.some(item => item.id === itemId);
+  
+  // Считаем общую стоимость
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price, 0);
 
   return (
-    <CartContext.Provider value={{ 
-        cartItems, 
-        favoriteItems, 
-        addToCart, 
-        removeFromCart, 
-        isItemInCart,
-        toggleFavorite,
-        isItemInFavorites,
-        cartTotal
+    <CartContext.Provider value={{
+      cartItems,
+      favoriteItems,
+      addToCart,
+      removeFromCart,
+      isItemInCart,
+      toggleFavorite,
+      isItemInFavorites,
+      cartTotal,
+      loading
     }}>
       {children}
     </CartContext.Provider>
   );
 };
 
-// Создаем кастомный хук для удобного доступа к контексту из любого компонента
+// Кастомный хук для доступа к контексту
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
