@@ -17,14 +17,15 @@ const Footer: React.FC = () => {
             <FaWhatsapp size={30} />
           </a>
         </div>
-        <p className="mt-4 text-gray-400">&copy; 2026 HelpMame. Все права защищены.</p>
-        <div className="mt-2">
+        <p className="mt-4 text-gray-400">&copy; {new Date().getFullYear()} HelpMame. Все права защищены.</p>
+        <div className="mt-2 flex justify-center items-center space-x-4">
           <Link href="/privacy" legacyBehavior>
             <a className="text-gray-400 hover:text-white text-sm">Политика конфиденциальности</a>
           </Link>
-          <Link href="https://relaxdev.ru" legacyBehavior>
-            <a className="text-gray-400 hover:text-white text-sm"> Размещен на relaxdev.ru </a>
-          </Link>
+          <span className="text-gray-500">|</span>
+          <a href="https://relaxdev.ru" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white text-sm">
+            Размещен на - relaxdev.ru
+          </a>
         </div>
       </div>
     </footer>
